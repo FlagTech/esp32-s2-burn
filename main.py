@@ -65,6 +65,8 @@ def port_exists(port):
         ports = get_ports(2) # s2 燒錄模式下的 pid
         if port in ports:
             break
+        if ports:
+            print(f'找到其他連接埠：{', '.join(ports)}')
         print(f'找不到指定的連接埠：{port}')
         print('請按板子右側的 0 不要放，再按一下左側的 RST 一下後放開')
         ans = input('請按 Enter 繼續（按 q 退出）：')
