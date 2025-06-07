@@ -1,8 +1,8 @@
 import network, urequests, sys, time
 
 ap_list = [
-    # "FLAG-SCHOOL"
-    "MEE_MI",
+    "FLAG-SCHOOL"
+    # "MEE_MI",
 ]
 
 ap_data = {
