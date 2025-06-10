@@ -3,6 +3,7 @@ import serial.tools.list_ports
 import os
 import subprocess
 import sys
+import time
 
 def get_ports(pid):
     """列出所有可用的序列埠"""
@@ -50,7 +51,11 @@ def write_flash(selected_port, firmware_path):
             "--chip", "esp32s2",
             "--port", selected_port,
             "--baud", "460800",
-            "--after", "no_reset",
+            # - 預設為 hard_reset，會因為 esptool 無法直接透過 USB 
+            #   設定 GPIO10 離開燒錄模式出錯強制結束程式
+            # - no_reset 還是會進行 software_reset，每 3,4 片就會出現
+            #   serial.serialutil.SerialException 例外 
+            "--after", "no_reset_stub",
             "write_flash",
             "--erase-all",
             "0x1000",
@@ -138,19 +143,23 @@ def main():
     selected_port = sys.argv[2].upper()
 
     ans = ''
+    count = 0
     while True:
         if not port_exists(selected_port):
             return
         
         write_flash(selected_port, firmware_path)
     
+        time.sleep(0.5)  # 等待燒錄完成
+        
         cdc_port = get_cdc_port()
         if not cdc_port:
             return
         
         if not run_tests(cdc_port):
             print("測試未通過，請檢查連接埠")          
-        ans = input('燒錄完成，請按 Enter 繼續（按 q 退出）：')
+        count += 1
+        ans = input(f'第 {count} 片燒錄完成，請按 Enter 繼續（按 q 退出）：')
         if ans.lower() == 'q':
             print("程式已退出")
             return
